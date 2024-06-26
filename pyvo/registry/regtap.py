@@ -784,14 +784,13 @@ class RegistryResource(dalq.Record):
                           if ((not std_only) or intf.is_standard)
                           and not intf.is_vosi
                           and ((not service_type) or intf.supports(service_type))]
-
         if not candidates:
             raise ValueError("No matching interface.")
 
         if keyword is not None:
             candidates = [candidate for candidate in candidates
                           if candidate.capability_description is not None
-                          and keyword in candidate.capability_description]
+                          and keyword in candidate.capability_description or ""]
 
         if len(candidates) > 1 and not lax:
             raise ValueError("Multiple matching interfaces found. If you know that they are all equivalent, "
