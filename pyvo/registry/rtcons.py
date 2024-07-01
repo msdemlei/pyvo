@@ -233,8 +233,8 @@ class SubqueriedConstraint(Constraint):
             raise NotImplementedError("{} is an abstract Constraint"
                                       .format(self.__class__.__name__))
 
-        return ("ivoid IN (SELECT ivoid FROM {subquery_table}"
-            " WHERE {condition})".format(
+        return ("EXISTS (SELECT 1 FROM {subquery_table}"
+            " WHERE ivoid=main.ivoid AND ({condition}) offset 0)".format(
                 subquery_table=self._subquery_table,
                 condition=self._condition.format(**self._get_sql_literals())))
 
@@ -949,7 +949,7 @@ def build_regtap_query(constraints, service):
             "(" + constraint.get_search_condition(service) + ")")
         extra_tables |= set(constraint._extra_tables)
 
-    joined_tables = ["rr.resource", "rr.capability", "rr.interface"
+    joined_tables = ["rr.capability", "rr.interface"
                      ] + list(extra_tables)
 
     # see comment in regtap.RegistryResource for the following
@@ -965,6 +965,8 @@ def build_regtap_query(constraints, service):
     fragments = ["SELECT",
                  ", ".join(select_clause),
                  "FROM",
+                 "rr.resource AS main",
+                 "NATURAL LEFT OUTER JOIN",
                  "\nNATURAL LEFT OUTER JOIN ".join(joined_tables),
                  "WHERE",
                  "\n  AND ".join(serialized),
